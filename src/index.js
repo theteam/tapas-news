@@ -30,7 +30,7 @@ var ejs = require('../modules/ejs');
 // config
 var app = express.createServer();
 app.use(express.staticProvider(__dirname + '/public'));
-app.set('views', __dirname + 'views');
+app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 // Here we use the bodyDecoder middleware
