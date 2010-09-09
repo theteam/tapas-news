@@ -1,0 +1,78 @@
+<project name="tapas-example" default="default">
+	
+	<property name="app.name" value="tapas-example"/>
+	
+	<target name="default" depends="clean, setup, test"/>
+	
+	<target name="clean.deps">
+		<echo message="cleaning dependencies"/>
+		<delete dir="lib"/>
+		<delete dir="bin"/>
+		<delete dir="modules"/>
+	</target>
+	
+	<target name="clean">
+		<echo message="cleaning directory build"/>
+		<delete dir="build"/>
+		<delete dir="dist"/>
+	</target>
+	
+	<target name="setup">
+		<echo message="running ndistro"/>
+		<exec executable="ndistro" dir="." failonerror="true"/>
+		<echo message="creating build directory"/>
+		<mkdir dir="build"/>
+		<copy todir="build">
+			<fileset dir=".">
+				<exclude name="build"/>
+				<exclude name="build.xml"/>
+				<exclude name=".ndistro"/>
+				<exclude name=".gitignore"/>
+			</fileset>
+		</copy>
+		<exec executable="chmod" dir="build/bin">
+			<arg value="+x"/>
+			<arg value="node"/>
+		</exec>
+	</target>
+	
+	<target name="test">
+		
+		<echo message="instrumenting code"/>
+		<exec executable="node-jscoverage" dir="build" failonerror="true">
+			<arg value="src"/>
+			<arg value="src-cov"/>
+		</exec>
+		
+		<echo message="running tests"/>
+		<exec executable="expresso" dir="build" failonerror="true">
+			<arg value="-I"/>
+			<arg value="src-cov"/>
+			<env key="PATH" path="${env.path}:./bin"/>
+		</exec>
+	</target>
+	
+	<target name="dist" depends="clean">
+		<echo message="creating distribution"/>
+		<mkdir dir="dist"/>
+		<mkdir dir="dist/build"/>
+		<copy todir="dist/build">
+			<fileset dir=".">
+				<exclude name="build/**"/>
+				<exclude name="build.xml"/>
+				<exclude name=".ndistro"/>
+				<exclude name=".gitignore"/>
+				<exclude name="test/**"/>
+				<exclude name="dist/**"/>
+			</fileset>
+		</copy>
+		<exec executable="chmod" dir="dist/build/bin">
+			<arg value="+x"/>
+			<arg value="node"/>
+		</exec>
+		<tar destfile="dist/${app.name}.tar" basedir="dist/build"/>
+		<gzip destfile="dist/${app.name}.tgz" src="dist/${app.name}.tar"/>
+		<delete file="dist/${app.name}.tar"/>
+	</target>
+		
+</project>
